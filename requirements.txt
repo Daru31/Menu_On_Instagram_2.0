@@ -1,3 +1,4 @@
-selenium 
-instagrapi 
-schedule 
+selenium
+instagrapi
+pillow
+schedule
