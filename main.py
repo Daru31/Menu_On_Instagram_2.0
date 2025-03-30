@@ -5,7 +5,9 @@ import datetime
 
 class insta: 
     def web_screenshot(self): 
-        driver = webdriver.Firefox() 
+        options = webdriver.FirefoxOptions()
+        options.add_argument("-headless")
+        driver = webdriver.Firefox(options=options) 
         driver.set_window_size(566,1080) 
         
         url = 'http://IPADDRESS/main.php'   # 호스팅 URL
@@ -25,7 +27,7 @@ class insta:
         cl.get_timeline_feed() 
         cl.delay_range = [1,3]
 
-        cl.photo_upload_to_story('REPOSITORY/PATH/screenshot.png') 
+        cl.photo_upload_to_story('screenshot.png') 
         cl.delay_range = [1,3] 
 
     def timecheck(self): 
