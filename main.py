@@ -18,22 +18,26 @@ class insta:
         driver.quit()
 
     def login_upload(self): 
+        date_str = str(datetime.datetime.now())
+        result = date_str[:10].replace("-", "")
         cl = Client()
         cl.delay_range = [1,3]
         cl.load_settings("session.json") 
         cl.delay_range = [1,3]
-        cl.login('USERNAME', 'PASSWORD')  
+        cl.login('ush_lunch_account', 'a12345678')  
         cl.delay_range = [1,3]
         cl.get_timeline_feed() 
         cl.delay_range = [1,3]
 
-        cl.photo_upload_to_story('screenshot.png') 
+        cl.photo_upload_to_story(result+'_lunch.png') 
+        cl.delay_range = [1,3] 
+        cl.photo_upload_to_story(result+'_dinner.png') 
         cl.delay_range = [1,3] 
 
     def timecheck(self): 
         print("Task completed at:", datetime.datetime.now()) 
         
 run = insta() 
-run.web_screenshot() 
+# run.web_screenshot() 
 run.login_upload() 
 run.timecheck() 
