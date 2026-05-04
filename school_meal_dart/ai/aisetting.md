@@ -7,7 +7,7 @@
 
 ---
 
-## 📅 프로젝트 진행 상태 요약 (2026-05-02 기준)
+## 📅 프로젝트 진행 상태 요약 (2026-05-04 업데이트 기준)
 
 ### 1. 완료된 작업 (Milestones)
 *   ✅ **데이터 수집 파이프라인 구축**:
@@ -17,25 +17,38 @@
 *   ✅ **엑셀 데이터 추출 엔진 (하이브리드 방식)**:
     *   Dart 라이브러리 한계 극복을 위해 Python(`pandas`, `openpyxl`)을 부하 프로세스로 활용.
     *   `parse_excel.py`: 달력 형태의 엑셀에서 날짜를 찾아 메뉴를 정확히 뽑아내는 로직 완성.
-*   ✅ **UI 디자인 및 이미지 렌더링**:
-    *   `MealCard`: 인스타 스토리 규격(1080x1920)의 세련된 위젯 디자인 완성.
-    *   `render_image.dart` / `main.dart`: `screenshot` 패키지를 이용해 위젯을 `meal_today.png` 이미지로 저장 성공.
+*   ✅ **UI 디자인 및 렌더링 방식 고도화**:
+    *   기존 한 장짜리 이미지(`meal_today.png`)에서 **중식/석식 개별 이미지 2장(`YYYYMMDD_lunch.png`, `YYYYMMDD_dinner.png`)으로 분리**.
+    *   중식(구름/햇살), 석식(별/달) 테마 배경 적용 및 텍스트 렌더링 간격/크기 조절.
+    *   리눅스 렌더링 환경을 대비해 컬러 이모지(`Noto Color Emoji`, `Apple Color Emoji`) 폴백 폰트 세팅.
+    *   사용되지 않는 테스트 파일(`render_image.dart`, `widget_test.dart`) 삭제.
+*   ✅ **인스타그램 자동 업로드 파이썬 봇 연동**:
+    *   `instagrapi` 라이브러리를 활용한 `upload_to_insta.py` 작성.
+    *   **보안 강화**: 하드코딩된 아이디/비밀번호 제거 후 `IG_USERNAME`, `IG_PASSWORD` 환경변수 처리.
+    *   **우회 처리**: 2FA/해외 로그인 차단 방지를 위해 로컬에서 `session.json`(`IG_SESSION`) 발급 방식 도입.
+    *   **오류 패치**: `instagrapi`의 PNG Payload 버그를 우회하기 위해 PIL 라이브러리로 JPG 변환 후 업로드.
+*   ✅ **GitHub Actions 파이프라인 완벽 구축**:
+    *   리눅스 가상 디스플레이(`xvfb`) 및 C++/GTK 필수 빌드 라이브러리 연동 완료.
+    *   한글 폰트(`fonts-nanum`) 및 컬러 이모지(`fonts-noto-color-emoji`) 설치 옵션 추가 완료.
+    *   월~금 평일에만 동작하도록 UTC 시차를 고려한 Cron 스케줄러(`1 15 * * 0-4`) 설정.
 
-### 2. 현재 시스템 아키텍처
-1.  **Dart (`daily_meal.dart`)**: 전체 흐름 제어, API 호출, 웹 크롤링, 결과 JSON 저장.
-2.  **Python (`parse_excel.py`)**: 복잡한 엑셀 파일 정밀 분석 및 텍스트 추출.
-3.  **Flutter (`main.dart`)**: `meal_data.json`을 읽어 예쁜 위젯을 그리고 PNG로 캡처.
+### 2. 현재 시스템 아키텍처 (Run All)
+1.  **Dart (`daily_meal.dart`)**: API 및 크롤링으로 식단 추출, 공휴일 예외 처리 후 `json_data` 폴더에 날짜별 JSON 저장.
+2.  **Flutter (`main.dart`)**: 가장 최신 JSON 데이터를 불러와 `MealCard` 위젯을 그리고 `images/` 폴더에 JPG(PNG) 캡처.
+3.  **Python (`upload_to_insta.py`)**: `instagrapi`와 깃허브 `Secrets`를 이용해 안전하게 인스타 스토리에 2장 순차 업로드.
+4.  **GitHub Actions (`daily_upload.yml`)**: 매일 밤 12시 1분(KST 기준 평일) 위 3단계를 자동으로 묶어서 실행.
 
-### 3. 남은 작업 (Next Steps)
-*   🔲 **인스타그램 업로드**: 완성된 `meal_today.png`를 인스타그램 공식 Graph API를 통해 자동으로 게시하는 Python 스크립트 작성.
-*   🔲 **GitHub Actions 통합**: 이 모든 파이프라인을 매일 아침 자동으로 실행할 워크플로우 파일 완성.
+### 3. 남은 작업 및 주의사항 (Next Steps)
+*   **완벽 자동화 유지**: 코드 상의 개인정보(세션, 계정)는 이미 완벽히 삭제되었으므로, 앞으로도 절대 하드코딩하지 말고 GitHub Secrets만 사용할 것.
+*   **모니터링**: 깃허브 Actions 탭을 통해 매일 업로드가 잘 되고 있는지 간헐적으로 체크할 것.
 
 ---
 
 ## 📂 주요 파일 위치 정보
-*   **API/스크레이퍼**: `ai/meal_project/lib/api/`, `ai/meal_project/lib/scraper/`
-*   **UI 위젯**: `ai/meal_project/lib/widgets/meal_card.dart`
-*   **데이터 추출 (Python)**: `ai/meal_project/parse_excel.py`
-*   **통합 실행 스크립트**: `ai/meal_project/bin/daily_meal.dart`
-*   **이미지 렌더러**: `ai/meal_project/lib/main.dart` (또는 `bin/render_image.dart`)
-*   **캐시 폴더**: `ai/meal_project/dinnerxlsx/`
+*   **통합 파이프라인(Run All)**: `ai/meal_project/bin/run_all.dart`
+*   **데이터 추출 (Dart & Python)**: `ai/meal_project/bin/daily_meal.dart`, `parse_excel.py`
+*   **UI 위젯 & 이미지 렌더러**: `ai/meal_project/lib/widgets/meal_card.dart`, `lib/main.dart`
+*   **인스타그램 업로드 (Python)**: `ai/meal_project/upload_to_insta.py`
+*   **로컬 세션 발급기**: `ai/meal_project/login_only.py`
+*   **GitHub Actions 스케줄러**: `.github/workflows/daily_upload.yml`
+*   **데이터 캐시 폴더**: `json_data/` (식단 JSON), `dinnerxlsx/` (석식 엑셀), `images/` (렌더링 결과물)
