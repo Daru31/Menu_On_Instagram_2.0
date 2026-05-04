@@ -1,0 +1,62 @@
+name: Daily Meal Instagram Upload
+
+on:
+  schedule:
+    # UTC 기준 21:00 = 한국 시간(KST) 오전 6:00
+    - cron: '0 21 * * *'
+  # GitHub 사이트에서 수동으로 버튼을 눌러 실행할 수 있게 해주는 옵션
+  workflow_dispatch:
+
+jobs:
+  run_pipeline:
+    runs-on: ubuntu-latest
+    
+    # 이 작업이 실행될 기본 폴더 경로 설정
+    defaults:
+      run:
+        working-directory: ./school_meal_dart/ai/meal_project
+
+    steps:
+      # 1. GitHub에 있는 코드를 서버로 불러옵니다.
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. Python 환경을 설치합니다. (엑셀 파싱 및 인스타 업로드용)
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python Dependencies
+        run: |
+          pip install openpyxl pandas instagrapi
+
+      # 3. Flutter 환경을 설치합니다.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      # 4. 리눅스 서버에는 모니터(화면)가 없기 때문에, 가상 디스플레이(xvfb)를 설치합니다.
+      - name: Setup XVFB
+        run: sudo apt-get install -y xvfb
+
+      # 5. 데이터 수집(Dart) 스크립트 실행
+      - name: Fetch Meal Data
+        env:
+          TZ: "Asia/Seoul" # 한국 시간으로 설정
+        run: dart bin/daily_meal.dart
+
+      # 6. 가상 화면(xvfb) 위에서 이미지를 캡처합니다.
+      - name: Render Images (Flutter)
+        run: xvfb-run --auto-servernum flutter run -d linux
+        
+      # 7. 생성된 이미지를 인스타그램에 업로드합니다.
+      - name: Upload to Instagram
+        env:
+          IG_USERNAME: ${{ secrets.IG_USERNAME }}
+          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
+        run: python upload_to_insta.py
