@@ -2,6 +2,7 @@ from selenium import webdriver
 import time 
 from instagrapi import Client 
 import datetime 
+import os
 
 class insta: 
     def web_screenshot(self): 
@@ -24,7 +25,11 @@ class insta:
         cl.delay_range = [1,3]
         cl.load_settings("session.json") 
         cl.delay_range = [1,3]
-        cl.login('ush_lunch_account', 'a12345678')  
+        
+        username = os.environ.get('IG_USERNAME', 'hidden_username')
+        password = os.environ.get('IG_PASSWORD', 'hidden_password')
+        cl.login(username, password)  
+        
         cl.delay_range = [1,3]
         cl.get_timeline_feed() 
         cl.delay_range = [1,3]

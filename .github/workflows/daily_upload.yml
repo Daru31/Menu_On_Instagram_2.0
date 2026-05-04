@@ -2,8 +2,8 @@ name: Daily Meal Instagram Upload
 
 on:
   schedule:
-    # UTC 기준 21:00 = 한국 시간(KST) 오전 6:00
-    - cron: '0 21 * * *'
+    # UTC 기준 15:01 = 한국 시간(KST) 밤 12:01 (00:01)
+    - cron: '1 15 * * *'
   # GitHub 사이트에서 수동으로 버튼을 눌러 실행할 수 있게 해주는 옵션
   workflow_dispatch:
 
@@ -19,11 +19,11 @@ jobs:
     steps:
       # 1. GitHub에 있는 코드를 서버로 불러옵니다.
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Python 환경을 설치합니다. (엑셀 파싱 및 인스타 업로드용)
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -40,9 +40,11 @@ jobs:
       - name: Install Flutter Dependencies
         run: flutter pub get
 
-      # 4. 리눅스 서버에는 모니터(화면)가 없기 때문에, 가상 디스플레이(xvfb)를 설치합니다.
-      - name: Setup XVFB
-        run: sudo apt-get install -y xvfb
+      # 4. 리눅스 서버에는 모니터(화면)가 없기 때문에, 가상 디스플레이(xvfb)와 Flutter Linux 빌드 도구를 설치합니다.
+      - name: Setup Linux Dependencies and XVFB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
 
       # 5. 데이터 수집(Dart) 스크립트 실행
       - name: Fetch Meal Data
