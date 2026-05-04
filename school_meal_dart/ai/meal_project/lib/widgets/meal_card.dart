@@ -77,7 +77,7 @@ class MealCard extends StatelessWidget {
                   child: Text(
                     titleText,
                     style: const TextStyle(
-                      fontFamily: 'Malgun Gothic',
+                      fontFamily: 'NanumGothic',
                       fontSize: 85, // 글자 크기 증가
                       fontWeight: FontWeight.w900, // 더 두껍게
                       color: Colors.white,

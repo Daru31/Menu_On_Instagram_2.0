@@ -47,7 +47,7 @@ jobs:
       - name: Setup Linux Dependencies and XVFB
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
+          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb fonts-nanum fonts-noto-color-emoji
 
       # 5. 데이터 수집(Dart) 스크립트 실행
       - name: Fetch Meal Data
