@@ -29,9 +29,9 @@ class insta:
         cl.get_timeline_feed() 
         cl.delay_range = [1,3]
 
-        cl.photo_upload_to_story(result+'_lunch.png') 
+        cl.photo_upload_to_story('school_meal_dart/ai/meal_project/images/'+result+'_lunch.png') 
         cl.delay_range = [1,3] 
-        cl.photo_upload_to_story(result+'_dinner.png') 
+        cl.photo_upload_to_story('school_meal_dart/ai/meal_project/images/'+result+'_dinner.png') 
         cl.delay_range = [1,3] 
 
     def timecheck(self): 
