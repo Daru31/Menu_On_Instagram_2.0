@@ -3,13 +3,16 @@ name: Daily Meal Instagram Upload
 on:
   schedule:
     # UTC 기준 15:01 = 한국 시간(KST) 밤 12:01 (00:01)
-    - cron: '1 15 * * *'
+    # 1-5는 월요일(1)부터 금요일(5)까지만 실행하라는 의미입니다.
+    - cron: '1 15 * * 1-5'
   # GitHub 사이트에서 수동으로 버튼을 눌러 실행할 수 있게 해주는 옵션
   workflow_dispatch:
 
 jobs:
   run_pipeline:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
     # 이 작업이 실행될 기본 폴더 경로 설정
     defaults:
@@ -61,4 +64,5 @@ jobs:
         env:
           IG_USERNAME: ${{ secrets.IG_USERNAME }}
           IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
+          IG_SESSION: ${{ secrets.IG_SESSION }}
         run: python upload_to_insta.py
