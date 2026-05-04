@@ -16,7 +16,7 @@ class MealCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // 테마 설정
     final titleText = isLunch ? '오늘의 중식' : '오늘의 석식';
-    final boxTitle = isLunch ? '☀️ 중식' : '🌙 석식';
+    final boxTitle = isLunch ? '☀️중식' : '🌙석식';
     final accentColor = isLunch ? const Color(0xFFFFD166) : const Color(0xFF118AB2);
     
     // 배경 그라데이션 (중식: 밝은 하늘, 석식: 어두운 밤하늘)
@@ -197,7 +197,7 @@ class MealCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontFamilyFallback: const ['Noto Color Emoji'],
+                  fontFamilyFallback: ['Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji'],
                   fontSize: 55, // 글자 크기 증가
                   fontWeight: FontWeight.w900,
                   color: isLunch ? const Color(0xFF333333) : Colors.white,
