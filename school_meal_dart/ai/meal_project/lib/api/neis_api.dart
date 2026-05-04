@@ -3,14 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class NeisApi {
-  // 울산광역시교육청 코드 (H10) 및 울산고등학교 코드 (7200057)
+  // 울산광역시교육청 코드 (H10) 및 울산고등학교 코드 (7480035)
   static const String ATPT_OFCDC_SC_CODE = 'H10';
-  static const String SD_SCHUL_CODE = '7200057';
+  static const String SD_SCHUL_CODE = '7480035';
   
-  // TODO: 실제 나이스 오픈 API 키를 발급받아 환경변수 등으로 관리해야 합니다.
-  // 현재는 테스트를 위해 KEY 파라미터를 생략하거나 임시로 비워둡니다.
-  // KEY를 생략해도 샘플 데이터 조회는 가능할 수 있으나, 제한이 있습니다.
-  static const String apiKey = ''; 
+  static const String apiKey = '8800eb07d6264088b1976ba95b4ccfa1'; 
 
   /// 특정 날짜의 중식 데이터를 가져옵니다. (날짜 생략 시 오늘 날짜)
   static Future<String> fetchLunch([DateTime? date]) async {
@@ -47,18 +44,26 @@ class NeisApi {
 
         // 정상적으로 데이터를 가져온 경우
         if (decodedData.containsKey('mealServiceDietInfo')) {
-          final mealList = decodedData['mealServiceDietInfo'][1]['row'];
-          if (mealList.isNotEmpty) {
-            String rawDishName = mealList[0]['DDISH_NM'];
-            
-            // 데이터에 포함된 알레르기 정보(예: (1.2.3.))와 불필요한 줄바꿈 제거
-            String cleanedDishName = rawDishName.replaceAll(RegExp(r'\([^)]*\)'), ''); // 괄호와 그 안의 내용 제거
-            cleanedDishName = cleanedDishName.replaceAll('<br/>', '\n'); // HTML 줄바꿈을 일반 줄바꿈으로 변경
-            
-            // 추가적인 정리: 각 줄 앞뒤 공백 제거
-            cleanedDishName = cleanedDishName.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).join('\n');
+          final mealInfoList = decodedData['mealServiceDietInfo'];
+          
+          // 'row' 키를 가진 배열 찾기
+          for (var item in mealInfoList) {
+            if (item.containsKey('row')) {
+              final rows = item['row'];
+              if (rows.isNotEmpty) {
+                // 메뉴 추출
+                String rawDishName = rows[0]['DDISH_NM'];
+                
+                // 데이터에 포함된 알레르기 정보(예: (1.2.3.))와 불필요한 줄바꿈 제거
+                String cleanedDishName = rawDishName.replaceAll(RegExp(r'\([^)]*\)'), ''); // 괄호와 그 안의 내용 제거
+                cleanedDishName = cleanedDishName.replaceAll('<br/>', '\n'); // HTML 줄바꿈을 일반 줄바꿈으로 변경
+                
+                // 추가적인 정리: 각 줄 앞뒤 공백 제거
+                cleanedDishName = cleanedDishName.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).join('\n');
 
-            return cleanedDishName;
+                return cleanedDishName;
+              }
+            }
           }
         }
         return '오늘 중식 정보가 없습니다.';
