@@ -197,6 +197,7 @@ class MealCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
+                  fontFamilyFallback: const ['Noto Color Emoji'],
                   fontSize: 55, // 글자 크기 증가
                   fontWeight: FontWeight.w900,
                   color: isLunch ? const Color(0xFF333333) : Colors.white,
