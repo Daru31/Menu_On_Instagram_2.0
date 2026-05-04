@@ -7,12 +7,24 @@ import 'package:meal_project/widgets/meal_card.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. JSON 파일 읽기
-  final jsonFile = File('meal_data.json');
-  if (!jsonFile.existsSync()) {
-    print('🚨 meal_data.json 파일이 없습니다.');
+  // 1. JSON 폴더에서 가장 최근 파일 읽기
+  final jsonDir = Directory('json_data');
+  if (!jsonDir.existsSync()) {
+    print('🚨 json_data 폴더가 없습니다.');
     exit(1);
   }
+  
+  final files = jsonDir.listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList();
+  if (files.isEmpty) {
+    print('🚨 json_data 폴더에 JSON 파일이 없습니다.');
+    exit(1);
+  }
+  
+  // 이름(날짜) 기준으로 가장 최신 파일 정렬
+  files.sort((a, b) => b.path.compareTo(a.path));
+  final jsonFile = files.first;
+  
+  print('📄 읽어온 데이터 파일: ${jsonFile.path}');
   
   final Map<String, dynamic> mealData = jsonDecode(await jsonFile.readAsString());
   
@@ -46,26 +58,64 @@ class _MyAppState extends State<MyApp> {
     await Future.delayed(const Duration(seconds: 1));
     
     try {
-      final imageBytes = await screenshotController.captureFromWidget(
-        MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(useMaterial3: true),
-          home: Scaffold(
-            body: MealCard(
-              dateString: widget.mealData['dateString'],
-              lunchMenu: widget.mealData['lunchMenu'],
-              dinnerMenu: widget.mealData['dinnerMenu'],
+      final dateStr = widget.mealData['dateString'] as String;
+      final cleanDate = dateStr.replaceAll(RegExp(r'[^0-9]'), ''); // "20260506"
+      final dir = Directory('images');
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      } else {
+        // 기존 캡처본 청소
+        for (var file in dir.listSync()) {
+          if (file is File && file.path.endsWith('.png')) {
+            file.deleteSync();
+          }
+        }
+      }
+
+      // 1. 중식 캡처
+      final lunchBytes = await screenshotController.captureFromWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: Size(1080, 1920)),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Material(
+              child: MealCard(
+                isLunch: true,
+                dateString: widget.mealData['dateString'],
+                menu: widget.mealData['lunchMenu'],
+              ),
             ),
           ),
         ),
-        targetSize: const Size(1080, 1920), // 인스타 스토리 규격
+        targetSize: const Size(1080, 1920),
       );
+      final lunchFile = File('images/${cleanDate}_lunch.png');
+      await lunchFile.writeAsBytes(lunchBytes);
+      print('☀️ 중식 이미지 저장 완료: ${lunchFile.path}');
 
-      final file = File('meal_today.png');
-      await file.writeAsBytes(imageBytes);
-      
+      // 2. 석식 캡처
+      final dinnerBytes = await screenshotController.captureFromWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: Size(1080, 1920)),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Material(
+              child: MealCard(
+                isLunch: false,
+                dateString: widget.mealData['dateString'],
+                menu: widget.mealData['dinnerMenu'],
+              ),
+            ),
+          ),
+        ),
+        targetSize: const Size(1080, 1920),
+      );
+      final dinnerFile = File('images/${cleanDate}_dinner.png');
+      await dinnerFile.writeAsBytes(dinnerBytes);
+      print('🌙 석식 이미지 저장 완료: ${dinnerFile.path}');
+
       print('=====================================');
-      print('🎉 이미지 저장 완료: ${file.path}');
+      print('🎉 모든 이미지 렌더링 및 저장 완료!');
       print('=====================================');
       
       exit(0); // 캡처 성공 후 앱 종료
