@@ -55,6 +55,15 @@ jobs:
           TZ: "Asia/Seoul" # 한국 시간으로 설정
         run: dart bin/daily_meal.dart
 
+      # 5-1. (추가) 새롭게 다운로드된 엑셀 파일이 있다면 깃허브에 자동 커밋 & 푸시
+      - name: Auto Commit and Push new Excel file
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add dinnerxlsx/*.xlsx
+          # 변경사항이 있을 때만 커밋하고 푸시 (에러 방지)
+          git diff --staged --quiet || (git commit -m "Auto-add new dinner excel file" && git push)
+
       # 6. 가상 화면(xvfb) 위에서 이미지를 캡처합니다.
       - name: Render Images (Flutter)
         run: xvfb-run --auto-servernum flutter run -d linux
