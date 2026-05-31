@@ -29,6 +29,12 @@ class SchoolBoardScraper {
         titleElements = document.querySelectorAll('a'); // 최후의 보루
       }
 
+      print('🔍 [디버그] 찾은 링크(a 태그) 개수: ${titleElements.length}');
+      if (titleElements.isEmpty || titleElements.length < 5) {
+        print('🔍 [디버그] 정상적인 게시판 페이지가 아닌 것 같습니다. HTML 본문 일부:');
+        print(response.body.length > 500 ? response.body.substring(0, 500) : response.body);
+      }
+
       final targetDate = date ?? DateTime.now();
       String thisMonth = DateFormat('M월').format(targetDate);
       String shortYear = DateFormat('yy년').format(targetDate);  // 26년 (2026년도 포함됨)
@@ -59,6 +65,7 @@ class SchoolBoardScraper {
         print('🚨 [긴급 알림] 이번 달($thisMonth) 석식 게시글이 ${matchingLinks.length}개 발견되었습니다. 가장 최근 글로 진행합니다.');
         return matchingLinks.first; 
       } else if (matchingLinks.length == 1) {
+        print('🌐 [로그] 매칭된 게시글 발견: ${matchingLinks.first}');
         return matchingLinks.first; 
       }
 
@@ -66,7 +73,9 @@ class SchoolBoardScraper {
       if (titleElements.isNotEmpty) {
         String? firstLink = titleElements.first.attributes['href'];
         if (firstLink != null) {
-          return firstLink.startsWith('/') ? '$baseUrl$firstLink' : firstLink;
+          final fallbackLink = firstLink.startsWith('/') ? '$baseUrl$firstLink' : firstLink;
+          print('🌐 [로그] 이번 달 매칭 실패, 가장 최근 게시글 반환: $fallbackLink');
+          return fallbackLink;
         }
       }
       return null;
