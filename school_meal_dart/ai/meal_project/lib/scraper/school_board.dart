@@ -11,9 +11,13 @@ class SchoolBoardScraper {
   /// 1. 특정 날짜(월)의 석식 엑셀 파일이 있는 게시글 링크를 찾습니다.
   static Future<String?> findThisMonthExcelPostUrl([DateTime? date]) async {
     try {
-      final response = await http.get(Uri.parse(boardUrl));
+      print('🌐 [로그] 학교 게시판 접속 시도: $boardUrl');
+      final response = await http.get(Uri.parse(boardUrl)).timeout(const Duration(seconds: 15));
+      print('🌐 [로그] 학교 게시판 응답 코드: ${response.statusCode}');
+      
       if (response.statusCode != 200) {
-        print('게시판 접속 실패: 상태 코드 ${response.statusCode}');
+        print('❌ [에러] 게시판 접속 실패: 상태 코드 ${response.statusCode}');
+        print('🔍 [디버그] 응답 본문 일부: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}');
         return null;
       }
 
@@ -67,7 +71,7 @@ class SchoolBoardScraper {
       }
       return null;
     } catch (e) {
-      print('게시글 탐색 중 오류 발생: $e');
+      print('❌ [에러] 게시글 탐색 중 네트워크/파싱 오류 발생: $e');
       // 여러 개 발견된 Exception은 상위로 던져서 알림을 발생시키도록 합니다.
       if (e.toString().contains('알림:')) rethrow; 
       return null;
@@ -77,9 +81,13 @@ class SchoolBoardScraper {
   /// 2. 찾은 게시글 안에서 '.xlsx' 엑셀 파일을 찾아 로컬에 다운로드합니다.
   static Future<String?> downloadDinnerExcel(String postUrl, String savePath) async {
     try {
-      final response = await http.get(Uri.parse(postUrl));
+      print('🌐 [로그] 게시글 세부 페이지 접속 시도: $postUrl');
+      final response = await http.get(Uri.parse(postUrl)).timeout(const Duration(seconds: 15));
+      print('🌐 [로그] 게시글 세부 페이지 응답 코드: ${response.statusCode}');
+      
       if (response.statusCode != 200) {
-        print('게시글 접속 실패: $postUrl');
+        print('❌ [에러] 게시글 접속 실패: 상태 코드 ${response.statusCode}');
+        print('🔍 [디버그] 응답 본문 일부: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}');
         return null;
       }
 
@@ -101,24 +109,26 @@ class SchoolBoardScraper {
       }
 
       if (excelDownloadUrl == null) {
-        print('엑셀 첨부파일을 찾을 수 없습니다.');
+        print('❌ [에러] 엑셀 첨부파일을 찾을 수 없습니다.');
         return null;
       }
 
-      print('엑셀 다운로드 링크 발견: $excelDownloadUrl');
+      print('🌐 [로그] 엑셀 다운로드 링크 발견: $excelDownloadUrl\n🌐 [로그] 엑셀 다운로드 시도 중...');
       
       // 실제 파일 다운로드 수행
-      final fileResponse = await http.get(Uri.parse(excelDownloadUrl));
+      final fileResponse = await http.get(Uri.parse(excelDownloadUrl)).timeout(const Duration(seconds: 30));
+      print('🌐 [로그] 엑셀 다운로드 응답 코드: ${fileResponse.statusCode}');
+      
       if (fileResponse.statusCode == 200) {
         File file = File(savePath);
         await file.writeAsBytes(fileResponse.bodyBytes);
         return savePath;
       } else {
-        print('파일 다운로드 실패: 상태 코드 ${fileResponse.statusCode}');
+        print('❌ [에러] 파일 다운로드 실패: 상태 코드 ${fileResponse.statusCode}');
         return null;
       }
     } catch (e) {
-      print('다운로드 중 오류 발생: $e');
+      print('❌ [에러] 다운로드 중 네트워크 오류 발생: $e');
       return null;
     }
   }
